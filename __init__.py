@@ -7,6 +7,7 @@ from mycroft.skills.core import MycroftSkill, intent_handler, intent_file_handle
 from mycroft.messagebus.message import Message
 from mycroft.util.log import LOG
 import requests
+from threading import Event
 
 
 class ChatWithRasaSkill(MycroftSkill):
@@ -21,17 +22,33 @@ class ChatWithRasaSkill(MycroftSkill):
         self.RASA_API = "http://asrajeh.ddns.net:5005/webhooks/rest/webhook"
         self.messages = []
 
+        
     def query_rasa(self, prompt=None):
+    
+        event=Event()
+        
         if self.conversation_active == False:
             return
         if prompt is None and len(self.messages) > 0:
             prompt = self.messages[-1]
         
         # Speak message to user and save the response
-        msg = self.get_response(prompt)
+        msg = self.get_response(prompt, num_retries=0)
+        
+        
+        i=0
+        notFound=True
+        if msg is None:
+             
+             while (notFound and (i<2)):
+                  
+                  msg = self.get_response(dialog=' ', num_retries=0)
+                  if msg is not None:
+                       break
+                  i+=1  
         
         # If user doesn't respond, quietly stop, allowing user to resume later
-        if msg is None:
+        if msg == 'وداعا':
             return
         # Else reset messages
         self.messages = []
