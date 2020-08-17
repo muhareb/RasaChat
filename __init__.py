@@ -42,13 +42,15 @@ class ChatWithRasaSkill(MycroftSkill):
              
              while (notFound and (i<2)):
                   
-                  msg = self.get_response(dialog=' ', num_retries=0)
+                  msg = self.get_response(dialog='..', num_retries=0)
                   if msg is not None:
                        break
                   i+=1  
         
+
+           
         # If user doesn't respond, quietly stop, allowing user to resume later
-        if msg == 'وداعا':
+        if msg is None:
             return
         # Else reset messages
         self.messages = []
@@ -77,6 +79,13 @@ class ChatWithRasaSkill(MycroftSkill):
             return
         # Use the last dialog from Rasa to prompt for next input from the user
         prompt = self.messages[-1]
+        
+        # If user doesn't respond, quietly stop, allowing user to resume later
+        if msg == 'يعطيك العافيه':
+             # Speak message to user and save the response
+             self.get_response(prompt, num_retries=0)
+             return
+      
         # Allows a stream of user inputs by re-calling query_rasa recursively
         # It will only stop when either user or Rasa stops providing data
         return self.query_rasa(prompt)
